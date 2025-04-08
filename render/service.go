@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -38,30 +37,15 @@ func NewClient(apiKey string) *Client {
 	}
 }
 
-// isDatabase checks if the service ID is a database (starts with "dpg-")
-func isDatabase(serviceID string) bool {
-	return strings.HasPrefix(serviceID, "dpg-")
-}
-
 // SuspendService suspends a single Render service or database
 func (c *Client) SuspendService(serviceID string) error {
-	var url string
-	if isDatabase(serviceID) {
-		url = fmt.Sprintf("https://api.render.com/v1/databases/%s/suspend", serviceID)
-	} else {
-		url = fmt.Sprintf("https://api.render.com/v1/services/%s/suspend", serviceID)
-	}
+	url := fmt.Sprintf("https://api.render.com/v1/services/%s/suspend", serviceID)
 	return c.sendRequest(url, serviceID, "suspend")
 }
 
 // ResumeService resumes a single Render service or database
 func (c *Client) ResumeService(serviceID string) error {
-	var url string
-	if isDatabase(serviceID) {
-		url = fmt.Sprintf("https://api.render.com/v1/databases/%s/resume", serviceID)
-	} else {
-		url = fmt.Sprintf("https://api.render.com/v1/services/%s/restart", serviceID)
-	}
+	url := fmt.Sprintf("https://api.render.com/v1/services/%s/resume", serviceID)
 	return c.sendRequest(url, serviceID, "resume")
 }
 
@@ -80,7 +64,8 @@ func (c *Client) sendRequest(url, serviceID, action string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	// Consider both 200 OK and 202 Accepted as success
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 		body, _ := io.ReadAll(resp.Body)
 		return &APIError{
 			StatusCode: resp.StatusCode,

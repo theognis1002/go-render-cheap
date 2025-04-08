@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"go-render-services/logger"
 	"go-render-services/render"
 )
 
@@ -31,17 +32,27 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize logger
+	log, err := logger.New(action)
+	if err != nil {
+		fmt.Printf("Error initializing logger: %v\n", err)
+		os.Exit(1)
+	}
+	defer log.Close()
+
+	log.Log("Starting %s operation...", action)
+
 	// Get the API key from the environment
 	apiKey := os.Getenv("RENDER_API_KEY")
 	if apiKey == "" {
-		fmt.Println("RENDER_API_KEY environment variable is not set")
+		log.Error("RENDER_API_KEY environment variable is not set")
 		os.Exit(1)
 	}
 
 	// Get service IDs from environment variable
 	serviceIDsStr := os.Getenv("RENDER_SERVICE_IDS")
 	if serviceIDsStr == "" {
-		fmt.Println("RENDER_SERVICE_IDS environment variable is not set")
+		log.Error("RENDER_SERVICE_IDS environment variable is not set")
 		os.Exit(1)
 	}
 
@@ -51,26 +62,32 @@ func main() {
 		serviceIDs[i] = strings.TrimSpace(id)
 	}
 
+	log.Log("Processing %d services: %s", len(serviceIDs), strings.Join(serviceIDs, ", "))
+
 	client := render.NewClient(apiKey)
 
 	// Process each service ID
 	for _, serviceID := range serviceIDs {
 		var err error
 		if action == "suspend" {
+			log.Log("Attempting to suspend service %s...", serviceID)
 			err = client.SuspendService(serviceID)
 		} else {
+			log.Log("Attempting to resume service %s...", serviceID)
 			err = client.ResumeService(serviceID)
 		}
 
 		if err != nil {
-			fmt.Printf("Error with service %s: %v\n", serviceID, err)
+			log.Error("Failed to process service %s: %v", serviceID, err)
 			continue
 		}
 
 		if action == "suspend" {
-			fmt.Printf("Successfully suspended service %s\n", serviceID)
+			log.Log("Successfully suspended service %s", serviceID)
 		} else {
-			fmt.Printf("Successfully initiated restart for service %s\n", serviceID)
+			log.Log("Successfully initiated resume for service %s", serviceID)
 		}
 	}
+
+	log.Log("Operation completed.")
 }

@@ -1,2 +1,4 @@
 services.json
 .env
+logs/*
+!logs/.gitkeep
