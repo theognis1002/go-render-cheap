@@ -2,11 +2,31 @@
 
 A command-line tool to manage Render.com services. This tool allows you to suspend and resume multiple Render services in bulk using the Render API.
 
+## Quickstart
+
+```bash
+# 1. Build the tool
+go build -o render-manager
+
+# 2. Set your Render API key
+export RENDER_API_KEY="your_render_api_key"
+
+# 3. Set your service IDs
+export RENDER_SERVICE_IDS="srv-123,srv-456"
+
+# 4. Run the tool
+./render-manager suspend    # to suspend services
+./render-manager unsuspend  # to resume services
+```
+
+Logs will be saved in the `log` directory with timestamps.
+
 ## Features
 
 - Suspend and resume Render services
 - Bulk operations on multiple services at once
 - Detailed error reporting
+- Automatic logging to files with timestamps
 
 ## Prerequisites
 
@@ -83,6 +103,7 @@ The script will:
 - Continue processing remaining services if one fails
 - Display detailed error messages for each failed operation
 - Show success messages for each successful operation
+- Save all output to timestamped log files
 
 ## Environment Variables
 
@@ -95,7 +116,16 @@ The script will:
 
 - All operations are performed sequentially
 - Each request has a 10-second timeout
+- Logs are saved in the `log` directory with timestamps
+- Error messages are shown in red on the console
+
+## TODO
+
+- [ ] Integrate with other services (ie; Heroku, fly.io, ???)
+- [ ] Add concurrency to speed things up
+- [ ] Add test cases
+- [ ] Handle different logging via CLI args
 
 ## License
 
-MIT License (or specify your chosen license)
+MIT License
